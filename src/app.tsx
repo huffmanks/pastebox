@@ -1,5 +1,3 @@
-import "./App.css";
-
 import { hc } from "hono/client";
 
 function App() {
