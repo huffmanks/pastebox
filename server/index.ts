@@ -1,16 +1,18 @@
 import { serve } from "@hono/node-server";
+import { eq } from "drizzle-orm";
 import { Hono } from "hono";
 import { logger } from "hono/logger";
 import { nanoid } from "nanoid";
 import fs from "node:fs";
 import path from "node:path";
-import type { Drop, NewDrop } from "./types.js";
+
+import { db } from "./db/index.js";
+import { drops, files } from "./db/schema.js";
 
 const app = new Hono();
 
 app.use(logger());
 
-const drops = new Map<string, Drop>();
 const UPLOAD_DIR = path.join(process.cwd(), "uploads");
 const EXPIRY_TIME = 24 * 60 * 60 * 1000;
 
@@ -18,124 +20,92 @@ if (!fs.existsSync(UPLOAD_DIR)) {
   fs.mkdirSync(UPLOAD_DIR, { recursive: true });
 }
 
-setInterval(() => {
-  const now = Date.now();
-  for (const [id, drop] of drops.entries()) {
-    if (drop.expiresAt.getTime() < now) {
-      if (drop.filePath && fs.existsSync(drop.filePath)) {
-        fs.unlinkSync(drop.filePath);
-      }
-      drops.delete(id);
-    }
-  }
-}, 60 * 60 * 1000);
-
-// API Routes
-app.get("/api/hello", (c) => c.json({ message: "Hello from Hono!" }));
+// setInterval(() => {
+//   const now = Date.now();
+//   for (const [id, drop] of drops.entries()) {
+//     if (drop.expiresAt.getTime() < now) {
+//       if (drop.filePath && fs.existsSync(drop.filePath)) {
+//         fs.unlinkSync(drop.filePath);
+//       }
+//       drops.delete(id);
+//     }
+//   }
+// }, 60 * 60 * 1000);
 
 app.post("/api/drop", async (c) => {
-  console.log(c);
   const body = await c.req.parseBody();
-  const id = nanoid(8);
+  const dropId = nanoid(8);
   const now = Date.now();
+  const expiresAt = new Date(now + EXPIRY_TIME);
 
-  if (body.content && typeof body.content === "string") {
-    const drop: NewDrop = {
-      id,
-      slug: (body.slug as string) || id,
-      type: "text",
-      title: (body.title as string) || "",
-      content: (body.content as string) || null,
-      expiresAt: new Date(now + EXPIRY_TIME),
-    };
+  const { slug, content, password, files: uploadedFiles } = body;
 
-    drops.set(id, drop);
-    return c.json({ id, slug: drop.slug });
-  } else if (body.file instanceof File) {
-    const file = body.file;
-    const fileName = file.name || "unnamed";
-    const filePath = path.join(UPLOAD_DIR, `${id}_${fileName}`);
-    const mimeType = file.type || "unknown";
-    const size = file.size || null;
-
-    const buffer = await file.arrayBuffer();
-    fs.writeFileSync(filePath, Buffer.from(buffer));
-
-    const drop: NewDrop = {
-      id,
-      slug: (body.slug as string) || id,
-      type: "file",
-      title: fileName,
-      content: null,
-      filePath,
-      mimeType,
-      size,
-      expiresAt: new Date(now + EXPIRY_TIME),
-    };
-    drops.set(id, drop);
-    return c.json({ id, slug: drop.slug, title: fileName });
-  }
-
-  return c.json({ error: "Invalid request" }, 400);
-});
-
-app.get("/api/drop/:id", (c) => {
-  const id = c.req.param("id");
-  const drop = drops.get(id);
-
-  if (!drop) {
-    return c.json({ error: "Not found" }, 404);
-  }
-
-  if (drop.expiresAt.getTime() < Date.now()) {
-    if (drop.filePath && fs.existsSync(drop.filePath)) {
-      fs.unlinkSync(drop.filePath);
-    }
-    drops.delete(id);
-    return c.json({ error: "Expired" }, 404);
-  }
-
-  if (drop.type === "text") {
-    return c.json({ type: "text", content: drop.content });
-  } else {
-    return c.json({ type: "file", filename: drop.title });
-  }
-});
-
-app.get("/api/download/:id", (c) => {
-  const id = c.req.param("id");
-  const drop = drops.get(id);
-
-  if (!drop || drop.type !== "file" || !drop.filePath) {
-    return c.json({ error: "Not found" }, 404);
-  }
-
-  if (drop.expiresAt.getTime() < Date.now()) {
-    if (fs.existsSync(drop.filePath)) {
-      fs.unlinkSync(drop.filePath);
-    }
-    drops.delete(id);
-    return c.json({ error: "Expired" }, 404);
-  }
-
-  if (!fs.existsSync(drop.filePath)) {
-    return c.json({ error: "File not found" }, 404);
-  }
-
-  const file = fs.readFileSync(drop.filePath);
-  return new Response(file, {
-    headers: {
-      "Content-Disposition": `attachment; filename="${drop.title}"`,
-      "Content-Type": "application/octet-stream",
-    },
+  await db.insert(drops).values({
+    id: dropId,
+    slug: (slug as string) || dropId,
+    content: content ?? null,
+    password: password ?? null,
+    expiresAt,
   });
+
+  if (Array.isArray(uploadedFiles) && uploadedFiles.length) {
+    await Promise.all(
+      uploadedFiles.map(async (file: any) => {
+        const fileName = file.name || "unnamed";
+        const filePath = path.join(UPLOAD_DIR, `${dropId}_${fileName}`);
+        const buffer = await file.arrayBuffer();
+        fs.writeFileSync(filePath, Buffer.from(buffer));
+        const fileRecord = {
+          id: nanoid(12),
+          dropId,
+          filePath,
+          mimeType: file.type || file.mimeType || "application/octet-stream",
+          size: typeof file.size === "number" ? file.size : Buffer.byteLength(Buffer.from(buffer)),
+          fileName,
+          uploadedAt: new Date(now),
+        };
+        await db.insert(files).values(fileRecord);
+      })
+    );
+  }
+
+  return c.json({ success: true, dropId });
 });
 
-app.get("/api/stats", (c) => {
-  return c.json({
-    total: drops.size,
-    texts: Array.from(drops.values()).filter((p) => p.type === "text").length,
-    files: Array.from(drops.values()).filter((p) => p.type === "file").length,
+app.get("/api/drop/:id", async (c) => {
+  const id = c.req.param("id");
+  const drop = await db.query.drops.findFirst({
+    where: eq(drops.id, id),
+    with: { files: true },
+  });
+
+  if (!drop) return c.json({ error: "Not found" }, 404);
+
+  await db
+    .update(drops)
+    .set({ views: drop.views + 1 })
+    .where(eq(drops.id, id));
+
+  if (new Date() > new Date(drop.expiresAt)) return c.json({ error: "Expired" }, 410);
+
+  return c.json(drop);
+});
+
+app.get("/api/download/:id", async (c) => {
+  const id = c.req.param("id");
+  const file = await db.query.files.findFirst({ where: eq(files.id, id) });
+  if (!file) return c.json({ error: "Not found" }, 404);
+
+  const drop = await db.query.drops.findFirst({ where: eq(drops.id, file.dropId) });
+  if (!drop) return c.json({ error: "Drop missing" }, 404);
+  if (new Date() > new Date(drop.expiresAt)) return c.json({ error: "Expired" }, 410);
+
+  const filePath = file.filePath;
+  if (!fs.existsSync(filePath)) return c.json({ error: "File missing" }, 404);
+
+  return c.body(fs.readFileSync(filePath), 200, {
+    "Content-Type": file.mimeType,
+    "Content-Disposition": `attachment; filename="${file.fileName}"`,
   });
 });
 
