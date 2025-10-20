@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    container_name: pastebox_db
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_USER=user
+      - POSTGRES_DB=pastebox
+    volumes:
+      - pastebox_pgdata_dev:/var/lib/postgresql/data
+
+volumes:
+  pastebox_pgdata_dev:
