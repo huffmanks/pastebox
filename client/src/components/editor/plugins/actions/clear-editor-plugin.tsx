@@ -14,7 +14,7 @@ export function ClearEditorActionPlugin() {
       <Tooltip disableHoverableContent>
         <TooltipTrigger asChild>
           <DialogTrigger asChild>
-            <Button size={"sm"} variant={"ghost"} className="p-2">
+            <Button size={"sm"} variant={"ghost"} className="p-2 cursor-pointer">
               <Trash2Icon className="h-4 w-4" />
             </Button>
           </DialogTrigger>

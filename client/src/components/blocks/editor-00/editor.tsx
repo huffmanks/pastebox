@@ -22,11 +22,13 @@ export function Editor({
   editorSerializedState,
   onChange,
   onSerializedChange,
+  setNoteValue,
 }: {
   editorState?: EditorState;
   editorSerializedState?: SerializedEditorState;
   onChange?: (editorState: EditorState) => void;
   onSerializedChange?: (editorSerializedState: SerializedEditorState) => void;
+  setNoteValue?: (editorState: string) => void;
 }) {
   return (
     <div className="bg-background overflow-hidden rounded-lg border shadow">
@@ -43,7 +45,10 @@ export function Editor({
             ignoreSelectionChange={true}
             onChange={(editorState) => {
               onChange?.(editorState);
-              onSerializedChange?.(editorState.toJSON());
+              const editorStateJSON = editorState.toJSON();
+
+              onSerializedChange?.(editorStateJSON);
+              setNoteValue?.(JSON.stringify(editorStateJSON));
             }}
           />
         </TooltipProvider>

@@ -115,7 +115,7 @@ function SpeechToTextPluginImpl() {
           variant={isSpeechToText ? "secondary" : "ghost"}
           title="Speech To Text"
           aria-label={`${isSpeechToText ? "Enable" : "Disable"} speech to text`}
-          className="p-2"
+          className="p-2 cursor-pointer"
           size={"sm"}>
           <MicIcon className="size-4" />
         </Button>
