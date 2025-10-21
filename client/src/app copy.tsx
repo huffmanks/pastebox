@@ -6,7 +6,7 @@ function App() {
   const [text, setText] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
-  const [result, setResult] = useState<{ id: string; url: string; filename?: string } | null>(null);
+  const [result, setResult] = useState<{ id: string; slug: string; filename?: string } | null>(null);
   const [copied, setCopied] = useState(false);
   const [stats, setStats] = useState({ total: 0, texts: 0, files: 0 });
 
@@ -53,13 +53,21 @@ function App() {
     setUploading(true);
     setResult(null);
 
+    if (!title ) return
+
     try {
       const formData = new FormData();
 
+      formData.append("title", title);
+      if (slug) {
+        formData.append("slug", slug);
+
+      }
       if (mode === "text") {
         formData.append("type", "text");
-        formData.append("title", title);
+        formData.append("content", content);
       } else if (file) {
+        formData.append("type", "file");
         formData.append("file", file);
       } else {
         return;
@@ -72,7 +80,7 @@ function App() {
 
       if (res.ok) {
         const data = await res.json();
-        const fullUrl = `${window.location.origin}${data.url}`;
+        const fullUrl = `${window.location.origin}${data.slug}`;
         setResult({ ...data, url: fullUrl });
         setText("");
         setFile(null);
