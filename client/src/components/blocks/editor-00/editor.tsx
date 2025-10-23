@@ -5,6 +5,7 @@ import type { EditorState, SerializedEditorState } from "lexical";
 import { editorTheme } from "@/components/editor/themes/editor-theme";
 import { TooltipProvider } from "@/components/ui/tooltip";
 
+import { Field } from "@/components/ui/field";
 import { nodes } from "./nodes";
 import { Plugins } from "./plugins";
 
@@ -41,16 +42,18 @@ export function Editor({
         <TooltipProvider>
           <Plugins />
 
-          <OnChangePlugin
-            ignoreSelectionChange={true}
-            onChange={(editorState) => {
-              onChange?.(editorState);
-              const editorStateJSON = editorState.toJSON();
+          <Field>
+            <OnChangePlugin
+              ignoreSelectionChange={true}
+              onChange={(editorState) => {
+                onChange?.(editorState);
+                const editorStateJSON = editorState.toJSON();
 
-              onSerializedChange?.(editorStateJSON);
-              setNoteValue?.(JSON.stringify(editorStateJSON));
-            }}
-          />
+                onSerializedChange?.(editorStateJSON);
+                setNoteValue?.(JSON.stringify(editorStateJSON));
+              }}
+            />
+          </Field>
         </TooltipProvider>
       </LexicalComposer>
     </div>

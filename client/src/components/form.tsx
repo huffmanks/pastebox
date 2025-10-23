@@ -21,6 +21,7 @@ export default function Form() {
   const [showPassword, setShowPassword] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [result, setResult] = useState({});
 
   const slugOptions = {
     lower: true,
@@ -52,8 +53,17 @@ export default function Form() {
         formData.set("slug", slugify(slug, slugOptions));
       }
 
-      const values = Object.fromEntries(formData.entries());
-      console.log(values);
+      files.forEach((file) => formData.append("files", file));
+
+      const res = await fetch("/api/drop", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!res.ok) throw new Error("Upload failed");
+
+      const data = await res.json();
+      setResult(data);
     } catch (err) {
       console.error("Upload failed:", err);
 
@@ -69,141 +79,147 @@ export default function Form() {
   //   setTimeout(() => setCopied(false), 2000);
   // };
 
-  const randomSlug = generateSlug();
-
   return (
     <div className="w-full">
-      <form className="grid gap-8 grid-cols-1 md:grid-cols-[3fr_1.25fr]" onSubmit={handleSubmit}>
+      {Object.keys(result).length !== 0 ? (
         <div>
-          <Field className="gap-1.5">
-            <FieldLabel htmlFor="content">Note</FieldLabel>
-            <Editor setNoteValue={setNoteValue} />
-          </Field>
+          <pre>{JSON.stringify(result, null, 2)}</pre>
         </div>
-        <div className="flex flex-col gap-6">
-          <FieldGroup className="gap-1.5">
-            <FieldLabel htmlFor="slug">Slug</FieldLabel>
-            <InputGroup>
-              <Field>
-                <InputGroupInput
-                  id="slug"
-                  name="slug"
-                  type="text"
-                  value={slug}
-                  placeholder={randomSlug}
-                  onChange={(e) => setSlug(e.target.value)}
-                  onFocus={(e) => e.target.select()}
-                  onBlur={(e) => {
-                    const val = e.target.value;
-                    if (val) setSlug(slugify(val, slugOptions));
-                  }}
-                />
-              </Field>
-              <InputGroupAddon align="inline-end">
-                <Field>
-                  <InputGroupButton
-                    type="button"
-                    size="icon-xs"
-                    className="cursor-pointer"
-                    onClick={() => {
-                      const tmpSlug = generateSlug();
-                      setSlug(tmpSlug);
-                    }}>
-                    <RefreshCcwIcon />
-                  </InputGroupButton>
-                </Field>
-              </InputGroupAddon>
-            </InputGroup>
-          </FieldGroup>
-
-          <FieldGroup className="gap-2.5">
-            <Field orientation="horizontal">
-              <FieldContent>
-                <FieldLabel htmlFor="isProtected">Password protect</FieldLabel>
-              </FieldContent>
-              <Switch id="isProtected" name="isProtected" checked={isProtected} onCheckedChange={(checked) => setIsProtected(checked)} />
+      ) : (
+        <form className="grid gap-8 grid-cols-1 md:grid-cols-[3fr_1.25fr]" onSubmit={handleSubmit}>
+          <div>
+            <Field className="gap-1.5">
+              <FieldLabel htmlFor="content">Note</FieldLabel>
+              <Editor setNoteValue={setNoteValue} />
             </Field>
-
-            <InputGroup>
-              <InputGroupAddon align="inline-start">
+          </div>
+          <div className="flex flex-col gap-6">
+            <FieldGroup className="gap-1.5">
+              <FieldLabel htmlFor="slug">Slug</FieldLabel>
+              <InputGroup>
                 <Field>
-                  <InputGroupButton disabled={!isProtected} type="button" size="icon-xs" className="cursor-pointer" onClick={() => setShowPassword((prev) => !prev)}>
-                    {showPassword ? <EyeOffIcon /> : <EyeIcon />}
-                  </InputGroupButton>
+                  <InputGroupInput
+                    id="slug"
+                    name="slug"
+                    type="text"
+                    value={slug}
+                    placeholder="huge-scrawny-sugar"
+                    onChange={(e) => setSlug(e.target.value)}
+                    onFocus={(e) => e.target.select()}
+                    onBlur={(e) => {
+                      const val = e.target.value;
+                      if (val) setSlug(slugify(val, slugOptions));
+                    }}
+                  />
                 </Field>
-              </InputGroupAddon>
-              <Field className="gap-1.5">
-                <InputGroupInput
-                  disabled={!isProtected}
-                  id="password"
-                  name="password"
-                  type={showPassword ? "text" : "password"}
-                  value={password}
-                  placeholder="Enter a password"
-                  onChange={(e) => setPassword(e.target.value)}
-                  onFocus={(e) => e.target.select()}
-                />
+                <InputGroupAddon align="inline-end">
+                  <Field>
+                    <InputGroupButton
+                      type="button"
+                      size="icon-xs"
+                      className="cursor-pointer"
+                      onClick={() => {
+                        const tmpSlug = generateSlug();
+                        setSlug(tmpSlug);
+                      }}>
+                      <RefreshCcwIcon />
+                    </InputGroupButton>
+                  </Field>
+                </InputGroupAddon>
+              </InputGroup>
+            </FieldGroup>
+
+            <FieldGroup className="gap-2.5">
+              <Field orientation="horizontal">
+                <FieldContent>
+                  <FieldLabel htmlFor="isProtected">Password protect</FieldLabel>
+                </FieldContent>
+                <Switch id="isProtected" name="isProtected" checked={isProtected} onCheckedChange={(checked) => setIsProtected(checked)} />
               </Field>
-              <InputGroupAddon align="inline-end">
-                <Field>
-                  <InputGroupButton
+
+              <InputGroup>
+                <InputGroupAddon align="inline-start">
+                  <Field>
+                    <InputGroupButton disabled={!isProtected} type="button" size="icon-xs" className="cursor-pointer" onClick={() => setShowPassword((prev) => !prev)}>
+                      {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                    </InputGroupButton>
+                  </Field>
+                </InputGroupAddon>
+                <Field className="gap-1.5">
+                  <InputGroupInput
                     disabled={!isProtected}
-                    type="button"
-                    size="icon-xs"
-                    className="cursor-pointer"
-                    onClick={() => {
-                      const tmpPass = generatePassword();
-                      setPassword(tmpPass);
-                    }}>
-                    <RefreshCcwIcon />
-                  </InputGroupButton>
+                    id="password"
+                    name="password"
+                    type={showPassword ? "text" : "password"}
+                    value={password}
+                    placeholder="Enter a password"
+                    onChange={(e) => setPassword(e.target.value)}
+                    onFocus={(e) => e.target.select()}
+                  />
                 </Field>
-              </InputGroupAddon>
-            </InputGroup>
-          </FieldGroup>
+                <InputGroupAddon align="inline-end">
+                  <Field>
+                    <InputGroupButton
+                      disabled={!isProtected}
+                      type="button"
+                      size="icon-xs"
+                      className="cursor-pointer"
+                      onClick={() => {
+                        const tmpPass = generatePassword();
+                        setPassword(tmpPass);
+                      }}>
+                      <RefreshCcwIcon />
+                    </InputGroupButton>
+                  </Field>
+                </InputGroupAddon>
+              </InputGroup>
+            </FieldGroup>
 
-          <Field>
-            <FileUpload disabled={isSubmitting} value={files} onValueChange={setFiles} onFileReject={onFileReject} multiple>
-              <FileUploadDropzone className="cursor-pointer">
-                <div className="flex flex-col items-center gap-1">
-                  <div className="flex items-center justify-center rounded-full border p-2.5">
-                    <Upload className="size-6 text-muted-foreground" />
-                  </div>
-                  <p className="font-medium text-sm">Drag & drop files here</p>
-                  <p className="text-muted-foreground text-xs">Or click to browse</p>
-                </div>
-                <FileUploadTrigger asChild>
-                  <Button variant="outline" size="sm" className="mt-2 w-fit cursor-pointer">
-                    Browse files
-                  </Button>
-                </FileUploadTrigger>
-              </FileUploadDropzone>
+            <FieldGroup>
+              <Field>
+                <FileUpload disabled={isSubmitting} value={files} onValueChange={setFiles} onFileReject={onFileReject} multiple>
+                  <FileUploadDropzone className="cursor-pointer">
+                    <div className="flex flex-col items-center gap-1">
+                      <div className="flex items-center justify-center rounded-full border p-2.5">
+                        <Upload className="size-6 text-muted-foreground" />
+                      </div>
+                      <p className="font-medium text-sm">Drag & drop files here</p>
+                      <p className="text-muted-foreground text-xs">Or click to browse</p>
+                    </div>
+                    <FileUploadTrigger asChild>
+                      <Button variant="outline" size="sm" className="mt-2 w-fit cursor-pointer">
+                        Browse files
+                      </Button>
+                    </FileUploadTrigger>
+                  </FileUploadDropzone>
 
-              {files && files.length > 0 && (
-                <ScrollArea className="h-80 w-full p-4 rounded-md border">
-                  <FileUploadList>
-                    {files.map((file, index) => (
-                      <FileUploadItem key={index} value={file} className="w-full">
-                        <FileUploadItemPreview />
-                        <FileUploadItemMetadata className="w-0" />
-                        <FileUploadItemDelete asChild>
-                          <Button variant="ghost" size="icon" className="size-7 cursor-pointer">
-                            <X />
-                          </Button>
-                        </FileUploadItemDelete>
-                      </FileUploadItem>
-                    ))}
-                  </FileUploadList>
-                </ScrollArea>
-              )}
-            </FileUpload>
-          </Field>
-          <Button disabled={isSubmitting} type="submit" className="cursor-pointer">
-            <PackagePlusIcon />
-            <span>Create</span>
-          </Button>
-        </div>
-      </form>
+                  {files && files.length > 0 && (
+                    <ScrollArea className="h-80 w-full p-4 rounded-md border">
+                      <FileUploadList>
+                        {files.map((file, index) => (
+                          <FileUploadItem key={index} value={file} className="w-full">
+                            <FileUploadItemPreview />
+                            <FileUploadItemMetadata className="w-0" />
+                            <FileUploadItemDelete asChild>
+                              <Button variant="ghost" size="icon" className="size-7 cursor-pointer">
+                                <X />
+                              </Button>
+                            </FileUploadItemDelete>
+                          </FileUploadItem>
+                        ))}
+                      </FileUploadList>
+                    </ScrollArea>
+                  )}
+                </FileUpload>
+              </Field>
+            </FieldGroup>
+            <Button disabled={isSubmitting} type="submit" className="cursor-pointer">
+              <PackagePlusIcon />
+              <span>Create</span>
+            </Button>
+          </div>
+        </form>
+      )}
     </div>
   );
 }
