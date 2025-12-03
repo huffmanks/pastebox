@@ -13,7 +13,9 @@
     "db:push:prod": "rm -rf data && mkdir -p data && drizzle-kit push --force",
     "db:migrate": "NODE_ENV=development dotenv -e .env.local -- drizzle-kit migrate",
     "db:studio": "dotenv -e .env.local -- drizzle-kit studio",
-    "docker:build": "pnpm run db:push:prod && docker compose build --no-cache && rm -rf data",
+    "docker:build:dev": "pnpm run db:push:prod && docker compose build --no-cache && rm -rf data",
+    "docker:build:test": "pnpm run db:push:prod && docker buildx build  --platform linux/amd64,linux/arm64 -t huffmanks/pastebox:latest --load . && rm -rf data",
+    "docker:build:prod": "pnpm run db:push:prod && docker buildx build  --platform linux/amd64,linux/arm64 -t huffmanks/pastebox:latest --push . && rm -rf data",
     "docker:up": "docker compose up -d"
   },
   "dependencies": {
