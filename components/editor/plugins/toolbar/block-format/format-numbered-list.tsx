@@ -1,3 +1,5 @@
+"use client";
+
 import { INSERT_ORDERED_LIST_COMMAND } from "@lexical/list";
 import { $setBlocksType } from "@lexical/selection";
 import { $createParagraphNode, $getSelection, $isRangeSelection } from "lexical";

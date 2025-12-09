@@ -1,3 +1,5 @@
+"use client";
+
 import { $createHeadingNode, type HeadingTagType } from "@lexical/rich-text";
 import { $setBlocksType } from "@lexical/selection";
 import { $getSelection } from "lexical";

@@ -1,3 +1,5 @@
+"use client";
+
 import { $setBlocksType } from "@lexical/selection";
 import { $createParagraphNode, $getSelection, $isRangeSelection } from "lexical";
 

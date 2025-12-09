@@ -29,7 +29,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     const zip = new yazl.ZipFile();
     for (const file of box.files) {
       const filePath = path.join(UPLOADS_DIR, file.name);
-      zip.addFile(filePath, file.name);
+      zip.addFile(filePath, file.originalName);
     }
 
     const zipPath = `/tmp/${box.id}.zip`;
