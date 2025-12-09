@@ -1,3 +1,5 @@
+"use client";
+
 import { $isCodeNode } from "@lexical/code";
 import {
   $getNearestNodeFromDOMNode,
