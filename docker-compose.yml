@@ -3,7 +3,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    image: pastebox
+    image: huffmanks/pastebox:latest
     container_name: pastebox_app
     ports:
       - "3000:3000"
