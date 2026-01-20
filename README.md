@@ -1,5 +1,7 @@
 # pastebox
 
+![Screenshot of pastebox dashboard screen.](https://huffmanks.com/portfolio/images/projects/pastebox.png)
+
 A lightweight, self-hosted tool for ephemeral rich text and file sharing on your local network. Designed as a quick digital “drop zone” rather than permanent storage, which prioritizes fast transfers between your devices.
 
 ## Features
