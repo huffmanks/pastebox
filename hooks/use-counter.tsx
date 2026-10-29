@@ -16,7 +16,8 @@ type UseCounterReturn = {
 export function useCounter(initialValue?: number): UseCounterReturn {
   const safeInitial = initialValue ?? 0;
   const [count, setCount] = React.useState(safeInitial);
-  const [prettyCount, setPrettyCount] = React.useState(getRelativeTimeLeft(safeInitial));
+
+  const prettyCount = getRelativeTimeLeft(count);
 
   const increment = React.useCallback((amt = 1) => {
     setCount((x) => x + amt);
@@ -33,10 +34,6 @@ export function useCounter(initialValue?: number): UseCounterReturn {
     },
     [initialValue]
   );
-
-  React.useEffect(() => {
-    setPrettyCount(getRelativeTimeLeft(count));
-  }, [count]);
 
   return {
     count,

@@ -3,6 +3,6 @@ import { drizzle } from "drizzle-orm/libsql";
 
 import * as schema from "@/db/schema";
 
-const client = createClient({ url: process.env.DATABASE_URL! });
+const client = createClient({ url: process.env.DATABASE_URL! || "file:./db/dev.db" });
 
 export const db = drizzle(client, { schema });

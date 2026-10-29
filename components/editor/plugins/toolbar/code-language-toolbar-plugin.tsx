@@ -2,12 +2,12 @@
 
 import { useCallback, useState } from "react";
 
+import { $isCodeNode } from "@lexical/code";
 import {
-  $isCodeNode,
-  CODE_LANGUAGE_FRIENDLY_NAME_MAP,
   CODE_LANGUAGE_MAP,
+  getCodeLanguageOptions,
   getLanguageFriendlyName,
-} from "@lexical/code";
+} from "@lexical/code-prism";
 import { $isListNode } from "@lexical/list";
 import { $findMatchingParent } from "@lexical/utils";
 import { $getNodeByKey, $isRangeSelection, $isRootOrShadowRoot, type BaseSelection } from "lexical";
@@ -15,16 +15,6 @@ import { $getNodeByKey, $isRangeSelection, $isRootOrShadowRoot, type BaseSelecti
 import { useToolbarContext } from "@/components/editor/hooks/use-toolbar-context";
 import { useUpdateToolbarHandler } from "@/components/editor/hooks/use-update-toolbar";
 import { Select, SelectContent, SelectItem, SelectTrigger } from "@/components/ui/select";
-
-function getCodeLanguageOptions(): [string, string][] {
-  const options: [string, string][] = [];
-
-  for (const [lang, friendlyName] of Object.entries(CODE_LANGUAGE_FRIENDLY_NAME_MAP)) {
-    options.push([lang, friendlyName]);
-  }
-
-  return options;
-}
 
 const CODE_LANGUAGE_OPTIONS = getCodeLanguageOptions();
 

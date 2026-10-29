@@ -11,7 +11,7 @@ export async function GET(
 ) {
   const { filename } = await params;
 
-  const filePath = path.join(process.cwd(), UPLOADS_DIR, filename);
+  const filePath = path.join(/*turbopackIgnore: true*/ process.cwd(), UPLOADS_DIR, filename);
 
   try {
     await fs.access(filePath);

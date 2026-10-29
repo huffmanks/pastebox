@@ -1,6 +1,4 @@
 import { eq } from "drizzle-orm";
-import { createWriteStream } from "node:fs";
-import fs from "node:fs/promises";
 import path from "node:path";
 import yazl from "yazl";
 
@@ -27,34 +25,32 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       return new Response("This pastebox has expired!", { status: 410 });
 
     const zip = new yazl.ZipFile();
+
     for (const file of box.files) {
-      const filePath = path.join(UPLOADS_DIR, file.name);
-      zip.addFile(filePath, file.originalName);
+      zip.addFile(path.join(UPLOADS_DIR, file.name), file.originalName);
     }
 
-    const zipPath = `/tmp/${box.id}.zip`;
-    const output = createWriteStream(zipPath);
-    const zipStream = new Promise<void>((resolve, reject) => {
-      output.on("close", resolve);
-      output.on("error", reject);
+    const body = new ReadableStream<Uint8Array>({
+      start(controller) {
+        zip.outputStream.on("data", (chunk: Buffer) => {
+          controller.enqueue(new Uint8Array(chunk));
+        });
+
+        zip.outputStream.on("end", () => controller.close());
+        zip.outputStream.on("error", (error: Error) => controller.error(error));
+
+        zip.end();
+      },
     });
-    zip.outputStream.pipe(output);
-    zip.end();
-    await zipStream;
 
-    const zipData = await fs.readFile(zipPath);
-    await fs.unlink(zipPath);
-
-    return new Response(zipData, {
+    return new Response(body, {
       status: 200,
       headers: {
         "Content-Type": "application/zip",
         "Content-Disposition": `attachment; filename="${box.id}.zip"`,
       },
     });
-  } catch (_error) {
-    return new Response("There was an error!", {
-      status: 400,
-    });
+  } catch {
+    return new Response("There was an error!", { status: 400 });
   }
 }
