@@ -16,8 +16,9 @@ COPY . .
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV DATABASE_URL=file:/app/data/pastebox.db
 
-RUN mkdir -p /app/data && corepack enable pnpm && pnpm run build && pnpm prune --prod \
+RUN mkdir -p /app/data && corepack enable pnpm && pnpm exec drizzle-kit push --force && pnpm run build && pnpm prune --prod \
     && rm -rf /app/.next/standalone/node_modules/typescript \
     /app/.next/standalone/node_modules/.pnpm/typescript* \
     /app/.next/standalone/node_modules/.pnpm/@img* \
@@ -43,6 +44,7 @@ RUN mkdir -p /app/uploads /app/data \
 COPY --from=builder /app/.next/standalone/node_modules ./node_modules
 COPY --from=builder /app/.next/standalone/server.js ./server.js
 
+COPY --from=builder --chown=nextjs:nodejs /app/data/pastebox.db ./data/pastebox.db
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone/.next ./.next
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 

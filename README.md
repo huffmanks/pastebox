@@ -18,17 +18,16 @@ A lightweight, self-hosted tool for ephemeral rich text and file sharing on your
 
 ```yaml
 services:
-  pastebox:
-    image: huffmanks/pastebox
-    container_name: pastebox
+  app:
+    image: huffmanks/pastebox:${IMAGE_TAG:-latest}
     ports:
-      - "3000:3000"
+      - "${APP_PORT:-3002}:3000"
     volumes:
       - uploads:/app/uploads
       - data:/app/data
     environment:
-      NODE_ENV: production
-      DATABASE_URL: ${DATABASE_URL}
+      NODE_ENV: ${NODE_ENV:-production}
+      DATABASE_URL: ${DATABASE_URL:-file:/app/data/pastebox.db}
       NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
     restart: unless-stopped
 
@@ -41,8 +40,11 @@ volumes:
 
 ```txt
 NODE_ENV=production
-DATABASE_URL=file:./data/prod.db
-NEXT_PUBLIC_APP_URL=http://localhost:3000
+IMAGE_TAG=latest
+APP_PORT=3002
+
+DATABASE_URL=file:/app/data/pastebox.db
+NEXT_PUBLIC_APP_URL=http://localhost:3002
 ```
 
 ## Start container
@@ -54,5 +56,5 @@ docker compose up -d
 ## Open web UI
 
 ```sh
-open http://localhost:3000
+open http://localhost:3002
 ```
