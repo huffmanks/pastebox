@@ -320,6 +320,7 @@ const FileUploadRoot = React.forwardRef<HTMLDivElement, FileUploadRootProps>(
     const {
       value,
       defaultValue,
+      onValueChange,
       onAccept,
       onFileAccept,
       onFileReject,
@@ -369,9 +370,9 @@ const FileUploadRoot = React.forwardRef<HTMLDivElement, FileUploadRootProps>(
     );
 
     React.useEffect(() => {
-      store.setOnValueChange(props.onValueChange);
+      store.setOnValueChange(onValueChange);
       store.dispatch({ variant: "SET_INVALID", invalid });
-    }, [invalid, props.onValueChange, store]);
+    }, [invalid, onValueChange, store]);
 
     React.useEffect(() => {
       if (isControlled) {
@@ -836,7 +837,7 @@ interface FileUploadItemProps extends React.ComponentPropsWithoutRef<"div"> {
 
 const FileUploadItem = React.forwardRef<HTMLDivElement, FileUploadItemProps>(
   (props, forwardedRef) => {
-    const { value, asChild, className, ...itemProps } = props;
+    const { value, asChild, className, children, ...itemProps } = props;
 
     const id = React.useId();
     const statusId = `${id}-status`;
@@ -893,7 +894,7 @@ const FileUploadItem = React.forwardRef<HTMLDivElement, FileUploadItemProps>(
             "relative flex items-center gap-2.5 rounded-md border p-3 has-data-[slot=file-upload-progress]:flex-col has-data-[slot=file-upload-progress]:items-start",
             className
           )}>
-          {props.children}
+          {children}
           <span
             id={statusId}
             className="sr-only">

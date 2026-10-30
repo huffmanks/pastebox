@@ -1,18 +1,14 @@
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    image: huffmanks/pastebox:latest
-    container_name: pastebox_app
+    image: huffmanks/pastebox:${IMAGE_TAG:-latest}
     ports:
-      - "3000:3000"
+      - "${APP_PORT:-3000}:3000"
     volumes:
       - uploads:/app/uploads
       - data:/app/data
     environment:
-      NODE_ENV: production
-      DATABASE_URL: ${DATABASE_URL}
+      NODE_ENV: ${NODE_ENV:-production}
+      DATABASE_URL: ${DATABASE_URL:-file:./data/prod.db}
       NEXT_PUBLIC_APP_URL: ${NEXT_PUBLIC_APP_URL}
     restart: unless-stopped
 

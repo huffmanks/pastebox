@@ -1,3 +1,5 @@
+import path from "node:path";
+
 export const EXPIRY_TIME = 24 * 60 * 60 * 1000;
 
 export const SLUG_OPTIONS = {
@@ -6,6 +8,6 @@ export const SLUG_OPTIONS = {
   trim: true,
 };
 
-export const UPLOADS_DIR = "uploads";
+export const UPLOADS_DIR = path.join(process.cwd(), "uploads");
 
 export const SHARE_API_META = { title: "Share note", text: "Access you box." };

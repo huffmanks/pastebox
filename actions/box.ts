@@ -118,10 +118,9 @@ export async function deleteBox(boxId: string) {
       if (found.files.length > 0) {
         await Promise.all(
           found.files.map(async (f) => {
-            const uploadsDir = path.resolve(/*turbopackIgnore: true*/ process.cwd(), UPLOADS_DIR);
-            const filePath = path.resolve(/*turbopackIgnore: true*/ uploadsDir, f.name);
+            const filePath = path.resolve(UPLOADS_DIR, f.name);
 
-            if (filePath.startsWith(uploadsDir)) {
+            if (filePath.startsWith(UPLOADS_DIR)) {
               await fs.unlink(filePath).catch(() => {});
             }
           })

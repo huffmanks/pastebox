@@ -3,19 +3,12 @@
   "version": "0.1.2",
   "private": true,
   "scripts": {
-    "dev": "dotenvx run -f .env.development -- next dev",
+    "dev": "next dev",
     "build": "next build",
     "start": "bun run .next/standalone/server.js",
     "check": "next typegen --webpack && tsc --noEmit",
     "lint": "eslint .",
-    "format": "prettier --write .",
-    "db:migrate:dev": "dotenvx run -f .env.development -- drizzle-kit migrate",
-    "db:generate:dev": "dotenvx run -f .env.development -- drizzle-kit generate",
-    "db:push:dev": "dotenvx run -f .env.development -- drizzle-kit push",
-    "db:studio:dev": "dotenvx run -f .env.development -- drizzle-kit studio",
-    "db:migrate:prod": "dotenvx run -f .env.production -- drizzle-kit migrate --force",
-    "db:push:prod": "dotenvx run -f .env.production -- drizzle-kit push --force",
-    "db:studio:prod": "dotenvx run -f .env.production -- drizzle-kit studio"
+    "format": "prettier --write ."
   },
   "dependencies": {
     "@lexical/code": "^0.52.0",
@@ -65,7 +58,6 @@
     "zod": "^4.6.7"
   },
   "devDependencies": {
-    "@dotenvx/dotenvx": "^2.38.2",
     "@tailwindcss/postcss": "^4.3.3",
     "@trivago/prettier-plugin-sort-imports": "^6.0.2",
     "@types/lodash.debounce": "^4.0.9",
