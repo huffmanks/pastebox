@@ -47,7 +47,7 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
       status: 200,
       headers: {
         "Content-Type": "application/zip",
-        "Content-Disposition": `attachment; filename="${box.id}.zip"`,
+        "Content-Disposition": `attachment; filename="pastebox_${box.id}.zip"`,
       },
     });
   } catch {
