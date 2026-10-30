@@ -1,0 +1,3 @@
+- [ ] Make box editable after creation.
+- [ ] Extend action, allow user to choose how long they want to extend for.
+- [ ] Encrypt/decrypt text/files.
