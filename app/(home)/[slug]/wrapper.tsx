@@ -1,8 +1,9 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useState } from "react";
 
-import { EditorState } from "lexical";
+import { SerializedEditorState } from "lexical";
 import { FileXIcon, NotebookIcon } from "lucide-react";
 
 import { cn, pluralize } from "@/lib/utils";
@@ -12,7 +13,6 @@ import AlertCountdown from "@/components/alert-countdown";
 import BoxUploadsList from "@/components/box-uploads-list";
 import DeleteBoxButton from "@/components/delete-box-button";
 import DownloadAllButton from "@/components/download-all-button";
-import { Editor } from "@/components/editor/blocks/editor";
 import ShareButton from "@/components/share-button";
 import {
   Empty,
@@ -22,6 +22,11 @@ import {
   EmptyTitle,
 } from "@/components/ui/empty";
 import UnlockBoxForm from "@/components/unlock-box-form";
+
+const Editor = dynamic(
+  () => import("@/components/editor/blocks/editor").then((mod) => mod.Editor),
+  { ssr: false }
+);
 
 interface WrapperProps {
   box: BoxWithFiles;
@@ -35,7 +40,7 @@ export default function Wrapper({ box, currentTime }: WrapperProps) {
 
   const hasNote = !!box?.content;
 
-  const editorJson = hasNote ? (box.content as unknown as EditorState) : undefined;
+  const editorJson = box.content ? (JSON.parse(box.content) as SerializedEditorState) : undefined;
 
   const boxFilesLength = box?.files?.length ?? 0;
   const filesString = `${boxFilesLength} ${pluralize("file", boxFilesLength)} attached`;
@@ -62,7 +67,7 @@ export default function Wrapper({ box, currentTime }: WrapperProps) {
             {hasNote ? (
               <Editor
                 slug={box.slug}
-                editorState={editorJson}
+                editorSerializedState={editorJson}
                 isEditable={false}
               />
             ) : (

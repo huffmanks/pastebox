@@ -1,5 +1,6 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 
@@ -13,7 +14,6 @@ import { z } from "zod";
 import { createBox } from "@/actions/box";
 import { SLUG_OPTIONS } from "@/lib/constants";
 
-import { Editor } from "@/components/editor/blocks/editor";
 import { Button } from "@/components/ui/button";
 import { Field, FieldContent, FieldGroup, FieldLabel } from "@/components/ui/field";
 import {
@@ -34,6 +34,11 @@ import {
 } from "@/components/ui/input-group";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Switch } from "@/components/ui/switch";
+
+const Editor = dynamic(
+  () => import("@/components/editor/blocks/editor").then((mod) => mod.Editor),
+  { ssr: false }
+);
 
 const _formSchema = z.object({
   content: z.string().optional(),
